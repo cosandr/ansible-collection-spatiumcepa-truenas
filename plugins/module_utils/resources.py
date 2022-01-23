@@ -697,7 +697,7 @@ class TruenasJailFstab(TruenasResource):
             if s['source'] == source:
                 if s['destination'] == destination and s['fsoptions'] == fsoptions:
                     return existing_model
-                elif not force:
+                elif not force and s['fsoptions'] == fsoptions:
                     break
                 self.resource_changed = True
                 send_body['options']['action'] = 'REPLACE'
