@@ -44,7 +44,8 @@ schema_id_white_list = [
     "system_reboot_0",
     "user_create_0",
     "user_update_1",
-    "update_update_0"
+    "update_update_0",
+    "jail_fstab_1",
 ]
 
 
@@ -99,7 +100,7 @@ def schema_to_spec(schema_id, schema, options_name='options'):
 
 arg_specs = {}
 
-if len(sys.argv) > 1 is not None:
+if len(sys.argv) > 1:
     schema_id_white_list = [
         sys.argv[1]
     ]

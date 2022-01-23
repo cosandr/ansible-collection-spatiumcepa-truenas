@@ -650,6 +650,41 @@ API_ARG_SPECS = {
       }
     }
   },
+  "jail_fstab_1": {
+    "type": "dict",
+    "options": {
+      "action": {
+        "type": "str",
+        "choices": [
+          "ADD",
+          "REMOVE",
+          "REPLACE",
+          "LIST"
+        ]
+      },
+      "source": {
+        "type": "str"
+      },
+      "destination": {
+        "type": "str"
+      },
+      "fstype": {
+        "type": "str"
+      },
+      "fsoptions": {
+        "type": "str"
+      },
+      "dump": {
+        "type": "str"
+      },
+      "pass": {
+        "type": "str"
+      },
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "mail_update_0": {
     "type": "dict",
     "options": {

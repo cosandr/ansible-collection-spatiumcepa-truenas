@@ -650,3 +650,90 @@ class TruenasUser(TruenasResource):
             elif existing_model[new_key] != new_model[new_key]:
                 has_changes = True
         return has_changes
+
+
+class TruenasJailFstab(TruenasResource):
+
+    RESOURCE_API_MODEL_SPEC = 'jail_fstab_1'
+    _RESOURCE_PATH = '/jail/fstab'
+
+    def _from_api(self, body):
+        ret = []
+        for k, v in body.items():
+            ret.append({
+                "type": v['type'],
+                "source": v['entry'][0],
+                "destination": v['entry'][1],
+                "fstype": v['entry'][2],
+                "fsoptions": v['entry'][3],
+                "dump": v['entry'][4],
+                "pass": v['entry'][5],
+                "index": k,
+            })
+        return ret
+
+    def fetch(self, jail):
+        send_body = {
+            "jail": jail,
+            "options": {
+                "action": 'LIST',
+            }
+        }
+        return self._send_request(HTTPMethod.POST, self._RESOURCE_PATH, send_body)
+
+    def update_item(self, jail, source, destination, fsoptions, force=False):
+        existing_model = self.fetch(jail)
+        existing = self._from_api(existing_model[HTTPResponse.BODY])
+        send_body = {
+            "jail": jail,
+            "options": {
+                "source": source,
+                "destination": destination,
+                "fsoptions": fsoptions,
+                "fstype": "nullfs",
+            }
+        }
+        for s in existing:
+            if s['source'] == source:
+                if s['destination'] == destination and s['fsoptions'] == fsoptions:
+                    return existing_model
+                elif not force:
+                    break
+                self.resource_changed = True
+                send_body['options']['action'] = 'REPLACE'
+                send_body['options']['index'] = s['index']
+                break
+        # We didn't find an existing mount
+        if 'action' not in send_body['options']:
+            self.resource_created = True
+            self.resource_changed = True
+            send_body['options']['action'] = 'ADD'
+        if self._check_mode:
+            return self._mocked_response(existing_model)
+        return self._send_request(HTTPMethod.POST, self._RESOURCE_PATH, send_body)
+
+    def delete_item(self, jail, source, destination):
+        existing_model = self.fetch(jail)
+        existing = self._from_api(existing_model[HTTPResponse.BODY])
+
+        send_body = {
+            "jail": jail,
+            "options": {
+                "action": "REMOVE",
+            }
+        }
+        for s in existing:
+            if s['source'] == source and s['destination'] == destination:
+                send_body['options']['index'] = s['index']
+                break
+
+        if 'index' not in send_body['options']:
+            return existing_model
+
+        self.resource_deleted = True
+        self.resource_changed = True
+
+        if self._check_mode:
+            return self._mocked_response(existing_model)
+
+        return self._send_request(HTTPMethod.POST, self._RESOURCE_PATH, send_body)
